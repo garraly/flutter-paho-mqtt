@@ -7,6 +7,10 @@ class FlutterAndroidMqtt {
   static const String CREATE = "CREATE";
 
   static const MethodChannel _channel = const MethodChannel('flutter_android_mqtt');
+  static const EventChannel _eventChannel = const EventChannel('flutter_android_mqtt');
+
+  static EventChannel get eventChannel => _eventChannel;
+
 
   static Future<String> get platformVersion async {
     final String version = await _channel.invokeMethod('getPlatformVersion');
