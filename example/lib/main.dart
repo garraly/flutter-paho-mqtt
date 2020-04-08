@@ -13,6 +13,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
+  static const MethodChannel _channel = const MethodChannel('flutter_android_mqtt');
 
   @override
   void initState() {
