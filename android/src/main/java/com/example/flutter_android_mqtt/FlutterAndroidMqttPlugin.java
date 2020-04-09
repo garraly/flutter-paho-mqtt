@@ -52,7 +52,6 @@ public class FlutterAndroidMqttPlugin implements FlutterPlugin, MethodCallHandle
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
     if (call.method.equals(CREATE)) {
-      System.out.println("LOG:----------> jskdlfjsdklfj");
       mqttUtil.onCreate(this.myContext,getServerUri(call), getClientId(call),getSubscriptionTopic(call));
       mqttUtil.addListener();
       result.success(null);

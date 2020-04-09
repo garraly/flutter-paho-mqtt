@@ -2,8 +2,12 @@ package com.example.flutter_android_mqtt;
 
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
+import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.util.Log;
+import androidx.appcompat.app.AppCompatActivity;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
@@ -23,12 +27,17 @@ import java.util.function.Function;
 import io.flutter.plugin.common.EventChannel;
 
 
-public class MqttUtil {
+public class MqttUtil extends AppCompatActivity {
 
     MqttAndroidClient mqttAndroidClient;
 
     private String subscriptionTopic = "";
 
+    @Override
+    public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
+        super.onCreate(savedInstanceState, persistentState);
+        addToHistory("----------------------------------- onCreate");
+    }
 
     public void onCreate(@NonNull Context context, @NonNull final String serverUri, @NonNull String clientId, @NonNull String subscriptionTopic) {
         this.subscriptionTopic = subscriptionTopic;
