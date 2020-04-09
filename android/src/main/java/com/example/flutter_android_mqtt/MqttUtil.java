@@ -33,12 +33,6 @@ public class MqttUtil extends AppCompatActivity {
 
     private String subscriptionTopic = "";
 
-    @Override
-    public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
-        super.onCreate(savedInstanceState, persistentState);
-        addToHistory("----------------------------------- onCreate");
-    }
-
     public void onCreate(@NonNull Context context, @NonNull final String serverUri, @NonNull String clientId, @NonNull String subscriptionTopic) {
         this.subscriptionTopic = subscriptionTopic;
 
