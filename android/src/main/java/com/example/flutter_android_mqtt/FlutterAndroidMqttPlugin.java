@@ -30,7 +30,7 @@ public class FlutterAndroidMqttPlugin implements FlutterPlugin, MethodCallHandle
     channel.setMethodCallHandler(flutterAndroidMqttPlugin);
     this.myContext = flutterPluginBinding.getApplicationContext();
     mqttUtil= new MqttUtil();
-    final EventChannel eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "android_mqtt_event");
+    final EventChannel eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "flutter_android_mqtt_event");
     eventChannel.setStreamHandler(flutterAndroidMqttPlugin);
   }
 
