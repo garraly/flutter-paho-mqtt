@@ -18,7 +18,7 @@ class FlutterAndroidMqtt {
   }
 
   static void createMqtt(
-      {@required final String serverUri, @required String clientId, @required String subscriptionTopic}) {
-    _channel.invokeMethod(CREATE, {serverUri: serverUri, clientId: clientId, subscriptionTopic: subscriptionTopic});
+      {@required final String serverUri, @required String clientId, @required String subscriptionTopic,@required String userName,@required String password, @required int qos}) {
+    _channel.invokeMethod(CREATE, {"serverUri": serverUri, "clientId": clientId, "subscriptionTopic": subscriptionTopic,"userName":userName,"password": password,"qos":qos});
   }
 }

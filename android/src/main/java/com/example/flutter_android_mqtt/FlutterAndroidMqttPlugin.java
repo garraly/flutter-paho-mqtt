@@ -29,7 +29,6 @@ public class FlutterAndroidMqttPlugin implements FlutterPlugin, MethodCallHandle
     FlutterAndroidMqttPlugin flutterAndroidMqttPlugin = new FlutterAndroidMqttPlugin();
     channel.setMethodCallHandler(flutterAndroidMqttPlugin);
     this.myContext = flutterPluginBinding.getApplicationContext();
-    Log.i("-------------------===",this.myContext.toString());
     mqttUtil= new MqttUtil();
     final EventChannel eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "android_mqtt_event");
     eventChannel.setStreamHandler(flutterAndroidMqttPlugin);
@@ -52,8 +51,8 @@ public class FlutterAndroidMqttPlugin implements FlutterPlugin, MethodCallHandle
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
     if (call.method.equals(CREATE)) {
-      mqttUtil.onCreate(this.myContext,getServerUri(call), getClientId(call),getSubscriptionTopic(call),getUserName(call),getPassword(call));
-      mqttUtil.addListener();
+      Log.i("-------------------===","1");
+      mqttUtil.onCreate(this.myContext,getServerUri(call), getClientId(call),getSubscriptionTopic(call),getUserName(call),getPassword(call),getQos(call));
       result.success(null);
     } else if (call.method.equals(UN_SUBSCRIBE_TO_PIC)){
       mqttUtil.unSubscribeToTopic();
@@ -110,5 +109,12 @@ public class FlutterAndroidMqttPlugin implements FlutterPlugin, MethodCallHandle
       return "";
     }
     return password;
+  }
+  private Integer getQos(MethodCall call) {
+    Integer qos = call.argument("qos");
+    if (qos == null) {
+      return 0;
+    }
+    return qos;
   }
 }

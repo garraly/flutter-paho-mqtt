@@ -40,7 +40,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _getInstance() {
-    FlutterAndroidMqtt.createMqtt(serverUri: '', clientId: '', subscriptionTopic: '');
+    FlutterAndroidMqtt.createMqtt(serverUri: 'tcp://192.168.31.3:1883', clientId: 'test-client', subscriptionTopic:'a/b',userName: 'test-user',qos: 1,password: 'password');
   }
 
   @override

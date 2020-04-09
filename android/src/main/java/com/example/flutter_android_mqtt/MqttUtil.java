@@ -33,11 +33,13 @@ public class MqttUtil extends AppCompatActivity {
     MqttAndroidClient mqttAndroidClient;
 
     private String subscriptionTopic = "";
+    private int qos = 0;
 
-    public void onCreate(@NonNull Context context, @NonNull final String serverUri, @NonNull String clientId, @NonNull String subscriptionTopic, String userName, String password) {
+    public void onCreate(@NonNull Context context, @NonNull final String serverUri, @NonNull String clientId, @NonNull String subscriptionTopic, String userName, String password, Integer qos) {
         this.subscriptionTopic = subscriptionTopic;
-
-        clientId = clientId + System.currentTimeMillis();
+        if (!qos.equals(null)) {
+            this.qos = qos.intValue();
+        }
         mqttAndroidClient = new MqttAndroidClient(context, serverUri, clientId);
 
         addListener();
@@ -48,14 +50,18 @@ public class MqttUtil extends AppCompatActivity {
         if (!userName.isEmpty()) {
             mqttConnectOptions.setUserName(userName);
         }
+
         if (!password.isEmpty()) {
             mqttConnectOptions.setPassword(password.toCharArray());
         }
+        Log.i("-------------------===","2");
+
         try {
-            //addToHistory("Connecting to " + serverUri);
+            addToHistory("Connecting to " + serverUri);
             mqttAndroidClient.connect(mqttConnectOptions, context, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
+                    Log.i("-------------------===","3");
                     DisconnectedBufferOptions disconnectedBufferOptions = new DisconnectedBufferOptions();
                     disconnectedBufferOptions.setBufferEnabled(true);
                     disconnectedBufferOptions.setBufferSize(100);
@@ -68,16 +74,18 @@ public class MqttUtil extends AppCompatActivity {
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                     // todo 重试
-                    addToHistory("Failed to connect to: " + serverUri);
+                    Log.i("-------------------===","4");
+                    addToHistory("Failed to connect : message = " + exception.getMessage());
                 }
             });
 
-
+            Log.i("-------------------===","5");
         } catch (MqttException ex) {
             ex.printStackTrace();
         }
 
     }
+
 
     private void addToHistory(String mainText) {
         System.out.println("LOG:----------> " + mainText);
@@ -87,7 +95,7 @@ public class MqttUtil extends AppCompatActivity {
 
     public void subscribeToTopic() {
         try {
-            mqttAndroidClient.subscribe(subscriptionTopic, 0, null, new IMqttActionListener() {
+            mqttAndroidClient.subscribe(subscriptionTopic, this.qos, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
                     addToHistory("Subscribed!");
