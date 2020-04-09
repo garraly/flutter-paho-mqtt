@@ -52,7 +52,7 @@ public class FlutterAndroidMqttPlugin implements FlutterPlugin, MethodCallHandle
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
     if (call.method.equals(CREATE)) {
-      mqttUtil.onCreate(this.myContext,getServerUri(call), getClientId(call),getSubscriptionTopic(call));
+      mqttUtil.onCreate(this.myContext,getServerUri(call), getClientId(call),getSubscriptionTopic(call),getUserName(call),getPassword(call));
       mqttUtil.addListener();
       result.success(null);
     } else if (call.method.equals(UN_SUBSCRIBE_TO_PIC)){
@@ -77,24 +77,38 @@ public class FlutterAndroidMqttPlugin implements FlutterPlugin, MethodCallHandle
   }
 
   private String getServerUri(MethodCall call) {
-    String fontSizeType = call.argument("serverUri");
-    if (fontSizeType == null || fontSizeType.equals("")) {
+    String serverUri = call.argument("serverUri");
+    if (serverUri == null || serverUri.equals("")) {
       return "";
     }
-    return fontSizeType;
+    return serverUri;
   }
   private String getClientId(MethodCall call) {
-    String fontSizeType = call.argument("clientId");
-    if (fontSizeType == null || fontSizeType.equals("")) {
+    String clientId = call.argument("clientId");
+    if (clientId == null || clientId.equals("")) {
       return "";
     }
-    return fontSizeType;
+    return clientId;
   }
   private String getSubscriptionTopic(MethodCall call) {
-    String fontSizeType = call.argument("subscriptionTopic");
-    if (fontSizeType == null || fontSizeType.equals("")) {
+    String subscriptionTopic = call.argument("subscriptionTopic");
+    if (subscriptionTopic == null || subscriptionTopic.equals("")) {
       return "";
     }
-    return fontSizeType;
+    return subscriptionTopic;
+  }
+  private String getUserName(MethodCall call) {
+    String userName = call.argument("userName");
+    if (userName == null || userName.equals("")) {
+      return "";
+    }
+    return userName;
+  }
+  private String getPassword(MethodCall call) {
+    String password = call.argument("password");
+    if (password == null || password.equals("")) {
+      return "";
+    }
+    return password;
   }
 }

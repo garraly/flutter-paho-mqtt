@@ -7,6 +7,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.util.Log;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
@@ -33,7 +34,7 @@ public class MqttUtil extends AppCompatActivity {
 
     private String subscriptionTopic = "";
 
-    public void onCreate(@NonNull Context context, @NonNull final String serverUri, @NonNull String clientId, @NonNull String subscriptionTopic) {
+    public void onCreate(@NonNull Context context, @NonNull final String serverUri, @NonNull String clientId, @NonNull String subscriptionTopic, String userName, String password) {
         this.subscriptionTopic = subscriptionTopic;
 
         clientId = clientId + System.currentTimeMillis();
@@ -44,6 +45,12 @@ public class MqttUtil extends AppCompatActivity {
         MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
         mqttConnectOptions.setAutomaticReconnect(true);
         mqttConnectOptions.setCleanSession(false);
+        if (!userName.isEmpty()) {
+            mqttConnectOptions.setUserName(userName);
+        }
+        if (!password.isEmpty()) {
+            mqttConnectOptions.setPassword(password.toCharArray());
+        }
         try {
             //addToHistory("Connecting to " + serverUri);
             mqttAndroidClient.connect(mqttConnectOptions, context, new IMqttActionListener() {
