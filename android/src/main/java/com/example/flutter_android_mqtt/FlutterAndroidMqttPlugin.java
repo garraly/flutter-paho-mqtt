@@ -14,107 +14,123 @@ import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.EventChannel.StreamHandler;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
-/** FlutterAndroidMqttPlugin */
+/**
+ * FlutterAndroidMqttPlugin
+ */
 public class FlutterAndroidMqttPlugin implements FlutterPlugin, MethodCallHandler, StreamHandler {
-  private static MqttUtil mqttUtil;
-  private String CREATE = "CREATE";
-  private String UN_SUBSCRIBE_TO_PIC = "UN_SUBSCRIBE_TO_PIC";
-  private String PUBLISH = "PUBLISH";
-  private static Context myContext;
-  static EventChannel.EventSink eventSink;
+    private static MqttUtil mqttUtil;
+    private final String CONNECT = "CONNECT";
+    private final String SUBSCRIBE = "SUBSCRIBE";
+    private final String UN_SUBSCRIBE = "UN_SUBSCRIBE";
+    private final String PUBLISH = "PUBLISH";
+    private static Context myContext;
+    static EventChannel.EventSink eventSink;
 
-  @Override
-  public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-    final MethodChannel channel = new MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "flutter_android_mqtt");
-    FlutterAndroidMqttPlugin flutterAndroidMqttPlugin = new FlutterAndroidMqttPlugin();
-    channel.setMethodCallHandler(flutterAndroidMqttPlugin);
-    this.myContext = flutterPluginBinding.getApplicationContext();
-    mqttUtil= new MqttUtil();
-    final EventChannel eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "flutter_android_mqtt_event");
-    eventChannel.setStreamHandler(flutterAndroidMqttPlugin);
-  }
+    @Override
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+        final MethodChannel channel = new MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "flutter_android_mqtt");
+        FlutterAndroidMqttPlugin flutterAndroidMqttPlugin = new FlutterAndroidMqttPlugin();
+        channel.setMethodCallHandler(flutterAndroidMqttPlugin);
+        this.myContext = flutterPluginBinding.getApplicationContext();
+        mqttUtil = new MqttUtil();
+        final EventChannel eventChannel = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "flutter_android_mqtt_event");
+        eventChannel.setStreamHandler(flutterAndroidMqttPlugin);
+    }
 
-  // This static function is optional and equivalent to onAttachedToEngine. It supports the old
-  // pre-Flutter-1.12 Android projects. You are encouraged to continue supporting
-  // plugin registration via this function while apps migrate to use the new Android APIs
-  // post-flutter-1.12 via https://flutter.dev/go/android-project-migration.
-  //
-  // It is encouraged to share logic between onAttachedToEngine and registerWith to keep
-  // them functionally equivalent. Only one of onAttachedToEngine or registerWith will be called
-  // depending on the user's project. onAttachedToEngine or registerWith must both be defined
-  // in the same class.
-  public static void registerWith(Registrar registrar) {
-    final MethodChannel channel = new MethodChannel(registrar.messenger(), "flutter_android_mqtt");
-    channel.setMethodCallHandler(new FlutterAndroidMqttPlugin());
-  }
+    // This static function is optional and equivalent to onAttachedToEngine. It supports the old
+    // pre-Flutter-1.12 Android projects. You are encouraged to continue supporting
+    // plugin registration via this function while apps migrate to use the new Android APIs
+    // post-flutter-1.12 via https://flutter.dev/go/android-project-migration.
+    //
+    // It is encouraged to share logic between onAttachedToEngine and registerWith to keep
+    // them functionally equivalent. Only one of onAttachedToEngine or registerWith will be called
+    // depending on the user's project. onAttachedToEngine or registerWith must both be defined
+    // in the same class.
+    public static void registerWith(Registrar registrar) {
+        final MethodChannel channel = new MethodChannel(registrar.messenger(), "flutter_android_mqtt");
+        channel.setMethodCallHandler(new FlutterAndroidMqttPlugin());
+    }
 
-  @Override
-  public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-    if (call.method.equals(CREATE)) {
-      Log.i("-------------------===","1");
-      mqttUtil.onCreate(this.myContext,getServerUri(call), getClientId(call),getSubscriptionTopic(call),getUserName(call),getPassword(call),getQos(call));
-      result.success(null);
-    } else if (call.method.equals(UN_SUBSCRIBE_TO_PIC)){
-      mqttUtil.unSubscribeToTopic();
-    } else if (call.method.equals(PUBLISH)) {
-      mqttUtil.publishMessage("123","123");
-    }
-  }
+    @Override
+    public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
 
-  @Override
-  public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-  }
+        switch (call.method) {
+            case CONNECT:
+                mqttUtil.connect(this.myContext, getServerUri(call), getClientId(call), getUserName(call), getPassword(call));
+                result.success(null);
+                break;
+            case SUBSCRIBE:
+              mqttUtil.subscribeToTopic(getSubscriptionTopic(call), getQos(call));
+                break;
+            case UN_SUBSCRIBE:
+                mqttUtil.unSubscribeToTopic();
+                break;
+            case PUBLISH:
+                mqttUtil.publishMessage("123", "123");
+                break;
+        }
 
-  @Override
-  public void onListen(Object arguments, EventChannel.EventSink events) {
-    eventSink = events;
-  }
+    }
 
-  @Override
-  public void onCancel(Object arguments) {
-    eventSink = null;
-  }
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+    }
 
-  private String getServerUri(MethodCall call) {
-    String serverUri = call.argument("serverUri");
-    if (serverUri == null || serverUri.equals("")) {
-      return "";
+    @Override
+    public void onListen(Object arguments, EventChannel.EventSink events) {
+        eventSink = events;
     }
-    return serverUri;
-  }
-  private String getClientId(MethodCall call) {
-    String clientId = call.argument("clientId");
-    if (clientId == null || clientId.equals("")) {
-      return "";
+
+    @Override
+    public void onCancel(Object arguments) {
+        eventSink = null;
     }
-    return clientId;
-  }
-  private String getSubscriptionTopic(MethodCall call) {
-    String subscriptionTopic = call.argument("subscriptionTopic");
-    if (subscriptionTopic == null || subscriptionTopic.equals("")) {
-      return "";
+
+    private String getServerUri(MethodCall call) {
+        String serverUri = call.argument("serverUri");
+        if (serverUri == null || serverUri.equals("")) {
+            return "";
+        }
+        return serverUri;
     }
-    return subscriptionTopic;
-  }
-  private String getUserName(MethodCall call) {
-    String userName = call.argument("userName");
-    if (userName == null || userName.equals("")) {
-      return "";
+
+    private String getClientId(MethodCall call) {
+        String clientId = call.argument("clientId");
+        if (clientId == null || clientId.equals("")) {
+            return "";
+        }
+        return clientId;
     }
-    return userName;
-  }
-  private String getPassword(MethodCall call) {
-    String password = call.argument("password");
-    if (password == null || password.equals("")) {
-      return "";
+
+    private String getSubscriptionTopic(MethodCall call) {
+        String subscriptionTopic = call.argument("subscriptionTopic");
+        if (subscriptionTopic == null || subscriptionTopic.equals("")) {
+            return "";
+        }
+        return subscriptionTopic;
     }
-    return password;
-  }
-  private Integer getQos(MethodCall call) {
-    Integer qos = call.argument("qos");
-    if (qos == null) {
-      return 0;
+
+    private String getUserName(MethodCall call) {
+        String userName = call.argument("userName");
+        if (userName == null || userName.equals("")) {
+            return "";
+        }
+        return userName;
     }
-    return qos;
-  }
+
+    private String getPassword(MethodCall call) {
+        String password = call.argument("password");
+        if (password == null || password.equals("")) {
+            return "";
+        }
+        return password;
+    }
+
+    private Integer getQos(MethodCall call) {
+        Integer qos = call.argument("qos");
+        if (qos == null) {
+            return 0;
+        }
+        return qos;
+    }
 }

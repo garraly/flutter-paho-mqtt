@@ -1,11 +1,7 @@
 package com.example.flutter_android_mqtt;
 
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
-import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,11 +19,6 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import androidx.annotation.NonNull;
 
-import java.util.function.Function;
-
-import io.flutter.plugin.common.EventChannel;
-
-
 public class MqttUtil extends AppCompatActivity {
 
     MqttAndroidClient mqttAndroidClient;
@@ -35,16 +26,57 @@ public class MqttUtil extends AppCompatActivity {
     private String subscriptionTopic = "";
     private int qos = 0;
 
-    public void onCreate(@NonNull Context context, @NonNull final String serverUri, @NonNull String clientId, @NonNull String subscriptionTopic, String userName, String password, Integer qos) {
-        this.subscriptionTopic = subscriptionTopic;
-        if (!qos.equals(null)) {
-            this.qos = qos.intValue();
-        }
+    // 对应flutter 的枚举状态
+    private final String CONNECT_SUCCESS = "CONNECT_SUCCESS";
+    private final String CONNECT_FAIL = "CONNECT_FAIL";
+    private final String SUBSCRIBE_SUCCESS = "CONNECT_SUCCESS";
+    private final String SUBSCRIBE_FAIL = "CONNECT_FAIL";
+    private final String RECONNECT = "RECONNECT";
+    private final String CONNECT_LOST = "CONNECT_LOST";
+    private final String MESSAGE_ARRIVED = "MESSAGE_ARRIVED";
+
+
+
+    public void connect(@NonNull Context context, @NonNull final String serverUri, @NonNull String clientId, String userName, String password) {
         mqttAndroidClient = new MqttAndroidClient(context, serverUri, clientId);
+        mqttAndroidClient.setCallback(new MqttCallbackExtended() {
 
-        addListener();
+            @Override
+            public void connectComplete(boolean reconnect, String serverURI) {
 
-        MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
+                if (reconnect) {
+                    addToHistory("Reconnected to : " + serverURI);
+                    final MqttCallbackData data = new MqttCallbackData(RECONNECT, null);
+                    FlutterAndroidMqttPlugin.eventSink.success(data);
+                    subscribeToTopic(subscriptionTopic, qos);
+                } else {
+                    addToHistory("Connected to: " + serverURI);
+                    final MqttCallbackData data = new MqttCallbackData(CONNECT_SUCCESS, null);
+                    FlutterAndroidMqttPlugin.eventSink.success(data);
+                }
+            }
+
+            @Override
+            public void connectionLost(Throwable cause) {
+                addToHistory("The Connection was lost.");
+                final MqttCallbackData data = new MqttCallbackData(CONNECT_LOST, null);
+                FlutterAndroidMqttPlugin.eventSink.success(data);
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                addToHistory("Incoming message: " + new String(message.getPayload()));
+                final MqttCallbackData data = new MqttCallbackData(MESSAGE_ARRIVED, new String(message.getPayload()));
+                FlutterAndroidMqttPlugin.eventSink.success(data);
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+
+            }
+        });
+
+        final MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
         mqttConnectOptions.setAutomaticReconnect(true);
         mqttConnectOptions.setCleanSession(false);
         if (!userName.isEmpty()) {
@@ -54,32 +86,28 @@ public class MqttUtil extends AppCompatActivity {
         if (!password.isEmpty()) {
             mqttConnectOptions.setPassword(password.toCharArray());
         }
-        Log.i("-------------------===","2");
 
         try {
             addToHistory("Connecting to " + serverUri);
             mqttAndroidClient.connect(mqttConnectOptions, context, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.i("-------------------===","3");
                     DisconnectedBufferOptions disconnectedBufferOptions = new DisconnectedBufferOptions();
                     disconnectedBufferOptions.setBufferEnabled(true);
                     disconnectedBufferOptions.setBufferSize(100);
                     disconnectedBufferOptions.setPersistBuffer(false);
                     disconnectedBufferOptions.setDeleteOldestMessages(false);
                     mqttAndroidClient.setBufferOpts(disconnectedBufferOptions);
-                    subscribeToTopic();
                 }
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    // todo 重试
-                    Log.i("-------------------===","4");
                     addToHistory("Failed to connect : message = " + exception.getMessage());
+                    final MqttCallbackData data = new MqttCallbackData(CONNECT_FAIL, null);
+                    FlutterAndroidMqttPlugin.eventSink.success(data);
                 }
             });
 
-            Log.i("-------------------===","5");
         } catch (MqttException ex) {
             ex.printStackTrace();
         }
@@ -93,17 +121,23 @@ public class MqttUtil extends AppCompatActivity {
     }
 
 
-    public void subscribeToTopic() {
+    public void subscribeToTopic(@NonNull String pic, int qos) {
+        this.subscriptionTopic = pic;
+        this.qos = qos;
         try {
-            mqttAndroidClient.subscribe(subscriptionTopic, this.qos, null, new IMqttActionListener() {
+            mqttAndroidClient.subscribe(pic, qos, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
                     addToHistory("Subscribed!");
+                    final MqttCallbackData data = new MqttCallbackData(SUBSCRIBE_SUCCESS, null);
+                    FlutterAndroidMqttPlugin.eventSink.success(data);
                 }
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                     addToHistory("Failed to subscribe");
+                    final MqttCallbackData data = new MqttCallbackData(SUBSCRIBE_FAIL, null);
+                    FlutterAndroidMqttPlugin.eventSink.success(data);
                 }
             });
 
@@ -141,7 +175,6 @@ public class MqttUtil extends AppCompatActivity {
     }
 
     public void publishMessage(@NonNull String publishTopic, @NonNull String publishMessage) {
-        Log.i("------>", "MQTT get message");
         try {
             MqttMessage message = new MqttMessage();
             message.setPayload(publishMessage.getBytes());
@@ -156,39 +189,4 @@ public class MqttUtil extends AppCompatActivity {
         }
     }
 
-    @SuppressLint("LongLogTag")
-    public void addListener() {
-        mqttAndroidClient.setCallback(new MqttCallbackExtended() {
-            EventChannel.EventSink eventSink = FlutterAndroidMqttPlugin.eventSink;
-
-            @Override
-            public void connectComplete(boolean reconnect, String serverURI) {
-
-                if (reconnect) {
-                    addToHistory("Reconnected to : " + serverURI);
-                    // Because Clean Session is true, we need to re-subscribe
-                    subscribeToTopic();
-                } else {
-                    addToHistory("Connected to: " + serverURI);
-                }
-            }
-
-            @Override
-            public void connectionLost(Throwable cause) {
-                addToHistory("The Connection was lost.");
-                eventSink.error("LOST", cause.toString(), null);
-            }
-
-            @Override
-            public void messageArrived(String topic, MqttMessage message) throws Exception {
-                addToHistory("Incoming message: " + new String(message.getPayload()));
-                eventSink.success(new String(message.getPayload()));
-            }
-
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken token) {
-
-            }
-        });
-    }
 }
