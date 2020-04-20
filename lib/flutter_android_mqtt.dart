@@ -1,8 +1,7 @@
-import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_android_mqtt/entities/enum/MqttCallbackEnum.dart';
 
 class FlutterAndroidMqtt {
   static const String CONNECT = "CONNECT";
@@ -20,26 +19,68 @@ class FlutterAndroidMqtt {
     @required String userName,
     @required String password,
   }) {
-    _channel.invokeMethod(CONNECT, {
-      "serverUri": serverUri,
-      "clientId": clientId,
-      "userName": userName,
-      "password": password,
-    });
+    if (Platform.isAndroid) {
+      _channel.invokeMethod(CONNECT, {
+        "serverUri": serverUri,
+        "clientId": clientId,
+        "userName": userName,
+        "password": password,
+      });
+    }
   }
 
   static void subscribe({@required String subscriptionTopic, @required int qos}) {
-    _channel.invokeListMethod(SUBSCRIBE,{
-      "subscriptionTopic": subscriptionTopic,
-      "qos": qos,
-    });
+    if (Platform.isAndroid) {
+      _channel.invokeListMethod(SUBSCRIBE, {
+        "subscriptionTopic": subscriptionTopic,
+        "qos": qos,
+      });
+    }
   }
 
   static void listenMessage(Function(MqttStatus, String) callback) {
-    eventChannel.receiveBroadcastStream().listen((data) {
-      if (callback != null) {
-        callback(data.key, data.value);
-      }
-    });
+    if (Platform.isAndroid) {
+      eventChannel.receiveBroadcastStream().listen((data) {
+        if (callback != null) {
+          callback(data.key, data.value);
+        }
+      });
+    }
   }
+}
+
+enum MqttStatus {
+  CONNECT_SUCCESS,
+  CONNECT_FAIL,
+  CONNECT_LOST,
+  SUBSCRIBE_SUCCESS,
+  SUBSCRIBE_FAIL,
+  RECONNECT,
+  MESSAGE_ARRIVED,
+}
+
+extension MqttStatusExtension on MqttStatus {
+  static const values = {
+    MqttStatus.CONNECT_SUCCESS: "CONNECT_SUCCESS",
+    MqttStatus.CONNECT_FAIL: "CONNECT_FAIL",
+    MqttStatus.CONNECT_LOST: "CONNECT_LOST",
+    MqttStatus.SUBSCRIBE_SUCCESS: "SUBSCRIBE_SUCCESS",
+    MqttStatus.SUBSCRIBE_FAIL: "SUBSCRIBE_FAIL",
+    MqttStatus.RECONNECT: "RECONNECT",
+    MqttStatus.MESSAGE_ARRIVED: "MESSAGE_ARRIVED",
+  };
+
+  static const keys = {
+    "CONNECT_SUCCESS": MqttStatus.CONNECT_SUCCESS,
+    "CONNECT_FAIL": MqttStatus.CONNECT_FAIL,
+    "CONNECT_LOST": MqttStatus.CONNECT_LOST,
+    "SUBSCRIBE_SUCCESS": MqttStatus.SUBSCRIBE_SUCCESS,
+    "SUBSCRIBE_FAIL": MqttStatus.SUBSCRIBE_FAIL,
+    "RECONNECT": MqttStatus.RECONNECT,
+    "MESSAGE_ARRIVED": MqttStatus.MESSAGE_ARRIVED,
+  };
+
+  String get value => values[this];
+
+  MqttStatus get key => keys[this];
 }

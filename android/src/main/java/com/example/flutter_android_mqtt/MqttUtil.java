@@ -36,7 +36,7 @@ public class MqttUtil extends AppCompatActivity {
     private final String MESSAGE_ARRIVED = "MESSAGE_ARRIVED";
 
 
-
+    // mqtt链接
     public void connect(@NonNull Context context, @NonNull final String serverUri, @NonNull String clientId, String userName, String password) {
         mqttAndroidClient = new MqttAndroidClient(context, serverUri, clientId);
         mqttAndroidClient.setCallback(new MqttCallbackExtended() {
@@ -117,10 +117,9 @@ public class MqttUtil extends AppCompatActivity {
 
     private void addToHistory(String mainText) {
         System.out.println("LOG:----------> " + mainText);
-//        Log.i("LOG:----------> " + mainText, "");
     }
 
-
+    // mqtt 的监听
     public void subscribeToTopic(@NonNull String pic, int qos) {
         this.subscriptionTopic = pic;
         this.qos = qos;
@@ -156,6 +155,7 @@ public class MqttUtil extends AppCompatActivity {
         }
     }
 
+    // mqtt解除监听
     public void unSubscribeToTopic() {
         try {
             mqttAndroidClient.unsubscribe(subscriptionTopic, null, new IMqttActionListener() {
@@ -174,6 +174,7 @@ public class MqttUtil extends AppCompatActivity {
         }
     }
 
+    // mqtt的推送消息
     public void publishMessage(@NonNull String publishTopic, @NonNull String publishMessage) {
         try {
             MqttMessage message = new MqttMessage();

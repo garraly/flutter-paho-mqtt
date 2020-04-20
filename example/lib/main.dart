@@ -14,9 +14,15 @@ class _MyAppState extends State<MyApp> {
     super.initState();
   }
 
-
   void _getInstance() {
+    FlutterAndroidMqtt.listenMessage((MqttStatus status, String msg){
+     print('listener-----------------> '+ MqttStatusExtension.values[status] + msg);
+    });
+    FlutterAndroidMqtt.connect(serverUri: null, clientId: null, userName: null, password: null);
+  }
 
+  void _sub () {
+    FlutterAndroidMqtt.subscribe(subscriptionTopic: null, qos: null);
   }
 
   @override
@@ -27,10 +33,18 @@ class _MyAppState extends State<MyApp> {
         title: const Text('Plugin example app'),
       ),
       body: Center(
-        child: RaisedButton(
-          onPressed: _getInstance,
-          child: const Text('获取', style: TextStyle(fontSize: 20)),
-        ),
+        child: Column(
+          children: <Widget>[
+            RaisedButton(
+              onPressed: _getInstance,
+              child: const Text('链接', style: TextStyle(fontSize: 20)),
+            ),
+            RaisedButton(
+              onPressed: _sub,
+              child: const Text('订阅', style: TextStyle(fontSize: 20)),
+            ),
+          ],
+        )
       ),
     ));
   }
