@@ -4,7 +4,6 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
-import io.flutter.Log;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -56,7 +55,7 @@ public class FlutterAndroidMqttPlugin implements FlutterPlugin, MethodCallHandle
 
         switch (call.method) {
             case CONNECT:
-                mqttUtil.connect(this.myContext, getServerUri(call), getClientId(call), getUserName(call), getPassword(call));
+                mqttUtil.connect(myContext, getServerUri(call), getClientId(call), getUserName(call), getPassword(call));
                 result.success(null);
                 break;
             case SUBSCRIBE:
@@ -97,7 +96,7 @@ public class FlutterAndroidMqttPlugin implements FlutterPlugin, MethodCallHandle
     private String getClientId(MethodCall call) {
         String clientId = call.argument("clientId");
         if (clientId == null || clientId.equals("")) {
-            return "";
+            return null;
         }
         return clientId;
     }
@@ -126,7 +125,7 @@ public class FlutterAndroidMqttPlugin implements FlutterPlugin, MethodCallHandle
         return password;
     }
 
-    private Integer getQos(MethodCall call) {
+    private int getQos(MethodCall call) {
         Integer qos = call.argument("qos");
         if (qos == null) {
             return 0;

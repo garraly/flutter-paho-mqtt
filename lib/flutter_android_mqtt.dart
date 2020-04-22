@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -15,7 +16,7 @@ class FlutterAndroidMqtt {
 
   static void connect({
     @required final String serverUri,
-    @required String clientId,
+    String clientId,
     @required String userName,
     @required String password,
   }) {
@@ -38,11 +39,17 @@ class FlutterAndroidMqtt {
     }
   }
 
-  static void listenMessage(Function(MqttStatus, String) callback) {
+  static void listenMessage(Function(MqttStatus, String, String) callback) {
     if (Platform.isAndroid) {
       eventChannel.receiveBroadcastStream().listen((data) {
         if (callback != null) {
-          callback(data.key, data.value);
+          final String value = data;
+          List<String> msg = value.split(',');
+          // 保证最低长度为3的填充
+          msg.add(null);
+          msg.add(null);
+          Map<int,String> msgMap = msg.asMap();
+          callback(MqttStatusExtension.keys[msgMap[0]], msgMap[1], msgMap[2]);
         }
       });
     }
