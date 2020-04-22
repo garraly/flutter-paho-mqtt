@@ -46,7 +46,7 @@ public class MqttUtil extends AppCompatActivity {
                 if (reconnect) {
                     addToHistory("Reconnected to : " + serverURI);
                     FlutterAndroidMqttPlugin.eventSink.success(RECONNECT);
-//                    subscribeToTopic(subscriptionTopic, qos);
+                    subscribeToTopic(subscriptionTopic, qos);
                 } else {
                     addToHistory("Connected to: " + serverURI);
                     FlutterAndroidMqttPlugin.eventSink.success(CONNECT_SUCCESS);
