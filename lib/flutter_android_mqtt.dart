@@ -39,6 +39,14 @@ class FlutterAndroidMqtt {
     }
   }
 
+  static void unSubscribe ({@required String subscriptionTopic}) {
+    if (Platform.isAndroid) {
+      _channel.invokeListMethod(UN_SUBSCRIBE, {
+        "subscriptionTopic": subscriptionTopic,
+      });
+    }
+  }
+
   static void listenMessage(Function(MqttStatus, String, String) callback) {
     if (Platform.isAndroid) {
       eventChannel.receiveBroadcastStream().listen((data) {

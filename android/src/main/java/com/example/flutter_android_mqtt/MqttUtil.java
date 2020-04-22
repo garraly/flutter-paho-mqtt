@@ -140,9 +140,9 @@ public class MqttUtil extends AppCompatActivity {
     }
 
     // mqtt解除监听
-    public void unSubscribeToTopic() {
+    public void unSubscribeToTopic(@NonNull String topic) {
         try {
-            mqttAndroidClient.unsubscribe(subscriptionTopic, null, new IMqttActionListener() {
+            mqttAndroidClient.unsubscribe(topic, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
 

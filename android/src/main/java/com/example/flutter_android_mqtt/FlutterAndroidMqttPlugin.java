@@ -62,7 +62,7 @@ public class FlutterAndroidMqttPlugin implements FlutterPlugin, MethodCallHandle
               mqttUtil.subscribeToTopic(getSubscriptionTopic(call), getQos(call));
                 break;
             case UN_SUBSCRIBE:
-                mqttUtil.unSubscribeToTopic();
+                mqttUtil.unSubscribeToTopic(getSubscriptionTopic(call));
                 break;
             case PUBLISH:
                 mqttUtil.publishMessage("123", "123");
